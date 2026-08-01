@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook>
+  <datasources>
+    <datasource caption='Parameters' name='Parameters'/>
+    <datasource caption='Sales DW' name='federated.sales'>
+      <connection class='snowflake'/>
+    </datasource>
+    <datasource caption='HR System' name='federated.hr'>
+      <connection class='postgres'/>
+    </datasource>
+    <datasource caption='Marketing API' name='federated.mktg'>
+      <connection class='rest'/>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='Geo Sales Map'>
+      <table><panes><pane><mark class='Map'/></pane></panes>
+        <rows><column-instance column='[Latitude]'/></rows>
+        <cols><column-instance column='[Longitude]'/></cols>
+      </table>
+    </worksheet>
+    <worksheet name='Profit Pie'>
+      <table><panes><pane><mark class='Pie'/></pane></panes>
+        <rows><column-instance column='[Category]'/></rows>
+      </table>
+    </worksheet>
+    <worksheet name='Gantt Timeline'>
+      <table><panes><pane><mark class='Gantt'/></pane></panes>
+        <rows><column-instance column='[Task]'/></rows>
+      </table>
+    </worksheet>
+  </worksheets>
+  <calculations>
+    <calculation class='tableau' formula='SUM([Revenue]) - SUM([Cost])'/>
+    <calculation class='tableau' formula='WINDOW_AVG(SUM([Revenue]))'/>
+  </calculations>
+  <actions>
+    <action name='Filter Action 1'/>
+    <action name='Highlight Action 1'/>
+  </actions>
+</workbook>

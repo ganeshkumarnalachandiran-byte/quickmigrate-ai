@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook>
+  <datasources>
+    <datasource caption='Sales CSV' name='federated.sales'>
+      <connection class='textscan'/>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='Revenue by Region'>
+      <table>
+        <view>
+          <datasources>
+            <datasource name='federated.sales'/>
+          </datasources>
+        </view>
+        <panes>
+          <pane>
+            <mark class='Bar'/>
+          </pane>
+        </panes>
+        <rows>
+          <column-instance column='[Region]' type='nominal'/>
+        </rows>
+        <cols>
+          <column-instance column='[Revenue]' type='quantitative'/>
+        </cols>
+      </table>
+    </worksheet>
+    <worksheet name='Revenue Trend'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='Line'/>
+          </pane>
+        </panes>
+        <rows>
+          <column-instance column='[Order Date]' type='ordinal'/>
+        </rows>
+        <cols>
+          <column-instance column='[Revenue]' type='quantitative'/>
+        </cols>
+      </table>
+    </worksheet>
+  </worksheets>
+</workbook>
