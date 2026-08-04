@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from quickmigrate.orchestrator import Orchestrator
 from quickmigrate.reporting import render_human_summary
+from pathlib import Path
 
 
 def test_full_batch_buckets_correctly(fixtures_dir, mock_settings):
@@ -15,7 +16,7 @@ def test_full_batch_buckets_correctly(fixtures_dir, mock_settings):
     assert d["summary"]["migrated"] == 1
     assert d["summary"]["flagged"] == 2
 
-    migrated_names = {e["source_file"].split("/")[-1] for e in d["migrated"]}
+    migrated_names = {Path(e["source_file"]).name for e in d["migrated"]}
     assert "sales_simple.twb" in migrated_names
 
 
