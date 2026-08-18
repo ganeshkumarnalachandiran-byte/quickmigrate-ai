@@ -25,6 +25,7 @@ from .models import MigratedEntry, Verdict
 from .reporting import MigrationReport
 from .translation import get_backend, translate
 from .triage import score_report
+from .resolver import DatasetResolver
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class Orchestrator:
         self._settings = settings
         self._backend = get_backend(settings)
         self._executor = QuickSightExecutor(settings)
+        self._resolver = DatasetResolver(settings)
 
     def migrate_file(self, path: Path):
         """Returns ('migrated', MigratedEntry) or ('flagged', FlaggedEntry)."""
@@ -63,8 +65,22 @@ class Orchestrator:
                 fallback_hint=hint_from_ir(ir),
             )
 
+        # --- resolve datasets (discover real QuickSight datasets to reference) ---
+        datasets = self._resolver.list_datasets()
+        if not datasets:
+            return "flagged", build_flag(
+                str(path), platform, "resolve",
+                ["No QuickSight datasets found in the account. Create a dataset "
+                 "or route to Transform (the data layer is a migration precondition)."],
+                fallback_hint=hint_from_ir(ir),
+            )
+
         # --- translate (agentic loop) ---
-        tr = translate(ir, self._backend, max_retries=self._settings.max_retries)
+        tr = translate(
+            ir, self._backend,
+            max_retries=self._settings.max_retries,
+            datasets=datasets,
+        )
         if not tr.ok:
             return "flagged", build_flag(
                 str(path), platform, "translate", [tr.error or "translation failed"],
