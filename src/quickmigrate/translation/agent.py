@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 
 from .backends.base import LLMBackend
 from .prompts import build_seed_prompt, build_correction_prompt
@@ -25,14 +26,41 @@ from ..models import ReportIR, TranslationResult
 
 log = logging.getLogger(__name__)
 
+def _extract_json(raw: str) -> str:
+    """
+    Pull a JSON object out of the model's raw text response.
+
+    Models often wrap JSON in markdown fences (```json ... ```) or add a line
+    of preamble. We strip fences if present, otherwise fall back to grabbing
+    everything from the first { to the last } so stray text around the JSON
+    doesn't break parsing. If nothing JSON-looking is found, return the text
+    unchanged so the parse error stays honest.
+    """
+    text = raw.strip()
+
+    # Case 1: fenced code block, with or without a language tag.
+    fence = re.search(r"```(?:json)?\s*(.*?)```", text, re.DOTALL)
+    if fence:
+        return fence.group(1).strip()
+
+    # Case 2: no fence — take from first { to last } inclusive.
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        return text[start:end + 1]
+
+    # Case 3: nothing JSON-looking; return as-is.
+    return text
+
 
 def translate(
     ir: ReportIR,
     backend: LLMBackend,
     max_retries: int = 3,
+    datasets: list | None = None,
 ) -> TranslationResult:
     messages: list[dict[str, str]] = [
-        {"role": "user", "content": build_seed_prompt(ir)}
+        {"role": "user", "content": build_seed_prompt(ir, datasets)}
     ]
     error_trail: list[str] = []
 
@@ -50,7 +78,7 @@ def translate(
 
         # --- parse JSON ---
         try:
-            payload = json.loads(raw)
+            payload = json.loads(_extract_json(raw))
         except json.JSONDecodeError as exc:
             err = f"Invalid JSON: {exc}"
             error_trail.append(err)
