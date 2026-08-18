@@ -28,3 +28,6 @@ output/
 .DS_Store
 .idea/
 .vscode/
+
+body.json
+out.json
