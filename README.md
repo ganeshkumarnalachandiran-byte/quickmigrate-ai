@@ -153,6 +153,14 @@ of AWS/Bedrock account provisioning, not the tool.
 - **Datasets must exist.** The resolve step references datasets that already exist
   in QuickSight. Create (or migrate) the datasets first; the tool discovers them,
   it does not create them.
+- **Account ID is required explicitly.** In bedrock mode the tool requires
+  `QM_AWS_ACCOUNT_ID` to be set, and fails fast if it is not — even though the
+  account could be derived from the authenticated session via
+  `sts:GetCallerIdentity`. This is a deliberate choice: requiring the target
+  account to be stated explicitly guards against accidentally creating dashboards
+  in the wrong account when credentials happen to point somewhere unexpected. It
+  makes the migration target an intentional decision, not an implicit side effect
+  of whichever profile is active.
 - **Dashboard permissions.** The tool creates the dashboard but does not grant
   viewing permissions (see Scope). After creation, the QuickSight administrator
   grants access to the relevant users/groups.
